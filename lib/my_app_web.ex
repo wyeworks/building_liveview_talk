@@ -44,8 +44,7 @@ defmodule MyAppWeb do
 
   def live_view do
     quote do
-      use Phoenix.LiveView,
-        layout: {MyAppWeb.LayoutView, "live.html"}
+      use Phoenix.LiveView
 
       unquote(view_helpers())
     end

@@ -3,16 +3,18 @@ defmodule MyAppWeb.ThermostatLive do
 
   def render(assigns) do
     ~H"""
-    <div class="thermostat">
-      <div class={"bar #{@mode}"}>
-        <a href="#" phx-click="toggle-mode"><%= @mode %></a>
+    <main class="container">
+      <div class="thermostat">
+        <div class={"bar #{@mode}"}>
+          <a href="#" phx-click="toggle-mode"><%= @mode %></a>
+        </div>
+        <div class="controls">
+          <span class="reading"><%= @val %></span>
+          <button phx-click="dec" class="minus">-</button>
+          <button phx-click="inc" class="plus">+</button>
+        </div>
       </div>
-      <div class="controls">
-        <span class="reading"><%= @val %></span>
-        <button phx-click="dec" class="minus">-</button>
-        <button phx-click="inc" class="plus">+</button>
-      </div>
-    </div>
+    </main>
     """
   end
 
