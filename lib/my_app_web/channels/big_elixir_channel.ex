@@ -9,12 +9,7 @@ defmodule MyAppWeb.BigElixirChannel do
     %{static: static, dynamic: dynamic} = MyAppWeb.ThermostatLive.render(lv_socket.assigns)
     values = dynamic.(false)
 
-    rendered = %{
-      0 => Enum.at(values, 0),
-      1 => Enum.at(values, 1),
-      2 => Enum.at(values, 2),
-      :s => static
-    }
+    rendered = build_diff_struct(values) |> add_static_data(static)
 
     updated_socket = Map.put(socket, :assigns, lv_socket.assigns)
     {:ok, %{rendered: rendered}, updated_socket}
@@ -29,13 +24,9 @@ defmodule MyAppWeb.BigElixirChannel do
     {:noreply, lv_socket} = MyAppWeb.ThermostatLive.handle_event(payload["event"], nil, lv_socket)
 
     %{dynamic: dynamic} = MyAppWeb.ThermostatLive.render(lv_socket.assigns)
-    values = dynamic.(false)
+    values = dynamic.(true)
 
-    diff = %{
-      0 => Enum.at(values, 0),
-      1 => Enum.at(values, 1),
-      2 => Enum.at(values, 2)
-    }
+    diff = build_diff_struct(values)
 
     updated_socket = Map.put(socket, :assigns, lv_socket.assigns)
     {:reply, {:ok, %{diff: diff}}, updated_socket}
@@ -54,5 +45,16 @@ defmodule MyAppWeb.BigElixirChannel do
       endpoint: endpoint,
       transport_pid: transport_pid
     }
+  end
+
+  defp build_diff_struct(values) do
+    values
+    |> Enum.with_index(fn elem, index -> {index, elem} end)
+    |> Enum.reject(fn {_index, elem} -> is_nil(elem) end)
+    |> Enum.into(%{})
+  end
+
+  defp add_static_data(diff, static) do
+    Map.put(diff, :s, static)
   end
 end
