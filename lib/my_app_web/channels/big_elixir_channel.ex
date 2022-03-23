@@ -3,10 +3,15 @@ defmodule MyAppWeb.BigElixirChannel do
 
   @impl true
   def join("lv:" <> _, payload, socket) do
+    lv_socket = transform_socket(socket)
+    {:ok, lv_socket} = MyAppWeb.ThermostatLive.mount(nil, nil, lv_socket)
+
+    %{mode: mode, val: val} = lv_socket.assigns
+
     rendered = %{
-      0 => "cooling",
-      1 => "cooling",
-      2 => "60",
+      0 => "#{mode}",
+      1 => "#{mode}",
+      2 => "#{val}",
       :s => [
         "<main class=\"container\">\n <div class=\"thermostat\">\n  <div class=\"bar ",
         "\">\n    <a href=\"#\" phx-click=\"toggle-mode\">",
@@ -15,19 +20,42 @@ defmodule MyAppWeb.BigElixirChannel do
       ]
     }
 
-    {:ok, %{rendered: rendered}, socket}
+    updated_socket = Map.put(socket, :assigns, lv_socket.assigns)
+    {:ok, %{rendered: rendered}, updated_socket}
   end
 
   # Channels can be used in a request/response fashion
   # by sending replies to requests from the client
   @impl true
   def handle_in(event, payload, socket) do
+    lv_socket = transform_socket(socket)
+
+    {:noreply, lv_socket} = MyAppWeb.ThermostatLive.handle_event(payload["event"], nil, lv_socket)
+
+    %{mode: mode, val: val} = lv_socket.assigns
+
     diff = %{
-      0 => "heating",
-      1 => "heating",
-      2 => "72"
+      0 => "#{mode}",
+      1 => "#{mode}",
+      2 => "#{val}"
     }
 
-    {:reply, {:ok, %{diff: diff}}, socket}
+    updated_socket = Map.put(socket, :assigns, lv_socket.assigns)
+    {:reply, {:ok, %{diff: diff}}, updated_socket}
+  end
+
+  @spec transform_socket(%Phoenix.Socket{}) :: %Phoenix.LiveView.Socket{}
+  defp transform_socket(socket) do
+    %Phoenix.Socket{
+      assigns: assigns,
+      endpoint: endpoint,
+      transport_pid: transport_pid
+    } = socket
+
+    %Phoenix.LiveView.Socket{
+      assigns: Map.put(assigns, :__changed__, %{}),
+      endpoint: endpoint,
+      transport_pid: transport_pid
+    }
   end
 end
