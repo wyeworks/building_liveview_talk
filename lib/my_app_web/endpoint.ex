@@ -10,7 +10,7 @@ defmodule MyAppWeb.Endpoint do
     signing_salt: "IbncDSyy"
   ]
 
-  socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
+  socket "/live", MyAppWeb.BigElixirSocket, websocket: [connect_info: [session: @session_options]]
 
   # Serve at "/" the static files from "priv/static" directory.
   #
