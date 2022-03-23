@@ -6,18 +6,14 @@ defmodule MyAppWeb.BigElixirChannel do
     lv_socket = transform_socket(socket)
     {:ok, lv_socket} = MyAppWeb.ThermostatLive.mount(nil, nil, lv_socket)
 
-    %{mode: mode, val: val} = lv_socket.assigns
+    %{static: static, dynamic: dynamic} = MyAppWeb.ThermostatLive.render(lv_socket.assigns)
+    values = dynamic.(false)
 
     rendered = %{
-      0 => "#{mode}",
-      1 => "#{mode}",
-      2 => "#{val}",
-      :s => [
-        "<main class=\"container\">\n <div class=\"thermostat\">\n  <div class=\"bar ",
-        "\">\n    <a href=\"#\" phx-click=\"toggle-mode\">",
-        "</a>\n  </div>\n  <div class=\"controls\">\n    <span class=\"reading\">",
-        "</span>\n    <button phx-click=\"dec\" class=\"minus\">-</button>\n    <button phx-click=\"inc\" class=\"plus\">+</button>\n  </div>\n</div>\n</main>"
-      ]
+      0 => Enum.at(values, 0),
+      1 => Enum.at(values, 1),
+      2 => Enum.at(values, 2),
+      :s => static
     }
 
     updated_socket = Map.put(socket, :assigns, lv_socket.assigns)
@@ -32,12 +28,13 @@ defmodule MyAppWeb.BigElixirChannel do
 
     {:noreply, lv_socket} = MyAppWeb.ThermostatLive.handle_event(payload["event"], nil, lv_socket)
 
-    %{mode: mode, val: val} = lv_socket.assigns
+    %{dynamic: dynamic} = MyAppWeb.ThermostatLive.render(lv_socket.assigns)
+    values = dynamic.(false)
 
     diff = %{
-      0 => "#{mode}",
-      1 => "#{mode}",
-      2 => "#{val}"
+      0 => Enum.at(values, 0),
+      1 => Enum.at(values, 1),
+      2 => Enum.at(values, 2)
     }
 
     updated_socket = Map.put(socket, :assigns, lv_socket.assigns)
